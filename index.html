@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NeuroSketch AI</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(ellipse at center, #0b0c1b 0%, #000 100%);
+      color: white;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 60px;
+      left: 60px;
+      max-width: 500px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px 25px;
+      border-left: 4px solid #00ffe1;
+      z-index: 100;
+      box-shadow: 0 0 10px rgba(0,255,225,0.2);
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      color: #00ffe1;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay">
+    <h1>NeuroSketch AI</h1>
+    <p><strong>Project:</strong> Real-Time Emotion Mapping from Voice</p>
+    <p>Our system analyzes vocal tones and subtle audio patterns to infer emotional states. It visualizes these signals in real-time, offering practical insights for customer service, education, and self-awareness tools.</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 100);
+    camera.position.z = 15;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Controls (optional, more interaction)
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.5;
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0x00ffe1, 1.5, 100);
+    pointLight.position.set(15, 10, 20);
+    scene.add(pointLight);
+
+    // Particle neural network
+    const group = new THREE.Group();
+    const nodeCount = 100;
+    const nodes = [];
+
+    for (let i = 0; i < nodeCount; i++) {
+      const sphereGeo = new THREE.SphereGeometry(0.1, 12, 12);
+      const sphereMat = new THREE.MeshStandardMaterial({ color: 0x00ffe1 });
+      const node = new THREE.Mesh(sphereGeo, sphereMat);
+      node.position.set(
+        (Math.random() - 0.5) * 12,
+        (Math.random() - 0.5) * 12,
+        (Math.random() - 0.5) * 12
+      );
+      nodes.push(node);
+      group.add(node);
+    }
+
+    // Connections
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffe1, transparent: true, opacity: 0.25 });
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dist = nodes[i].position.distanceTo(nodes[j].position);
+        if (dist < 2.5) {
+          const geometry = new THREE.BufferGeometry().setFromPoints([
+            nodes[i].position.clone(),
+            nodes[j].position.clone()
+          ]);
+          const line = new THREE.Line(geometry, lineMat);
+          group.add(line);
+        }
+      }
+    }
+
+    scene.add(group);
+
+    // Animate
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
